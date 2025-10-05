@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xsukax ReadClean PDF</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding: 40px 20px; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid #21262d; }
+        .header h1 { font-size: 32px; font-weight: 600; color: #58a6ff; margin-bottom: 8px; }
+        .header .subtitle { color: #8b949e; font-size: 16px; }
+        .header .brand { color: #58a6ff; font-weight: 600; }
+        .main-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 32px; }
+        .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid #21262d; }
+        .tab { padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: #8b949e; transition: all 0.2s; }
+        .tab:hover { color: #c9d1d9; }
+        .tab.active { color: #58a6ff; border-bottom-color: #f78166; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 24px; margin-bottom: 24px; }
+        .section h3 { font-size: 16px; font-weight: 600; color: #c9d1d9; margin-bottom: 16px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #c9d1d9; }
+        input[type="url"], textarea { width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; font-size: 14px; color: #c9d1d9; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; transition: all 0.2s; }
+        input[type="url"]:focus, textarea:focus { outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1); }
+        textarea { min-height: 180px; resize: vertical; }
+        .button-group { display: flex; gap: 12px; margin-top: 16px; }
+        button { padding: 10px 20px; border: 1px solid #30363d; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #238636; color: #ffffff; border-color: #238636; }
+        .btn-primary:hover:not(:disabled) { background: #2ea043; border-color: #2ea043; }
+        .btn-secondary { background: #21262d; color: #c9d1d9; }
+        .btn-secondary:hover:not(:disabled) { background: #30363d; border-color: #8b949e; }
+        .btn-danger { background: #da3633; color: #ffffff; border-color: #da3633; }
+        .btn-danger:hover:not(:disabled) { background: #e5534b; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { margin-top: 16px; padding: 16px; border-radius: 6px; font-size: 14px; display: none; }
+        .status.loading { background: #1f6feb1a; border: 1px solid #1f6feb; color: #58a6ff; display: block; }
+        .status.success { background: #2ea0431a; border: 1px solid #2ea043; color: #3fb950; display: block; }
+        .status.error { background: #da36331a; border: 1px solid #da3633; color: #f85149; display: block; }
+        .bookmarklet-link { display: inline-block; padding: 10px 20px; background: #238636; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; margin: 12px 0; cursor: move; transition: all 0.2s; }
+        .bookmarklet-link:hover { background: #2ea043; }
+        .instructions { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 16px; margin: 16px 0; font-size: 14px; }
+        .instructions ol { margin-left: 24px; margin-top: 12px; }
+        .instructions li { margin-bottom: 8px; color: #8b949e; }
+        .instructions strong { color: #c9d1d9; }
+        .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+        .option { display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; }
+        .option input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #238636; }
+        .option label { cursor: pointer; font-size: 14px; color: #c9d1d9; user-select: none; }
+        .page-info { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 16px; margin: 16px 0; display: none; }
+        .page-info strong { color: #58a6ff; display: block; margin-bottom: 8px; }
+        .page-info .title { color: #c9d1d9; font-size: 16px; margin-bottom: 4px; }
+        .page-info .url { color: #8b949e; font-size: 12px; word-break: break-all; }
+        #content { margin-top: 24px; padding: 32px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; max-height: 600px; overflow-y: auto; display: none; }
+        #content.rtl { direction: rtl; text-align: right; }
+        #content.ltr { direction: ltr; text-align: left; }
+        #content h1, #content h2, #content h3 { margin: 24px 0 16px 0; color: #58a6ff; font-weight: 600; }
+        #content h1 { font-size: 28px; }
+        #content h2 { font-size: 22px; }
+        #content h3 { font-size: 18px; }
+        #content p { margin-bottom: 16px; line-height: 1.8; color: #c9d1d9; }
+        #content ul, #content ol { margin: 16px 0; padding-inline-start: 32px; }
+        #content li { margin-bottom: 10px; line-height: 1.7; color: #c9d1d9; }
+        #content a { color: #58a6ff; text-decoration: none; }
+        #content a:hover { text-decoration: underline; }
+        #content img { max-width: 100%; height: auto; border-radius: 6px; margin: 16px 0; }
+        #content code { background: #161b22; padding: 2px 6px; border-radius: 3px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; }
+        #content pre { background: #161b22; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 16px 0; }
+        .footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid #21262d; color: #8b949e; font-size: 14px; }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+        @media (max-width: 768px) { body { padding: 20px 10px; } .main-content { padding: 20px; } .tabs { overflow-x: auto; } .options { grid-template-columns: 1fr; } }
+        @media print { body { background: white !important; padding: 0 !important; color: #000 !important; } .container { max-width: none !important; background: white !important; box-shadow: none !important; } .header, .tabs, .tab-content, .input-group, .button-group, .status, .options, .section, .footer, .page-info { display: none !important; } .main-content { background: white !important; border: none !important; padding: 0 !important; box-shadow: none !important; } #content { max-height: none !important; overflow: visible !important; display: block !important; padding: 20px !important; background: white !important; border: none !important; color: #000 !important; } #content h1, #content h2, #content h3 { color: #000 !important; } #content p, #content li { color: #000 !important; } #content a { color: #0366d6 !important; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 <span class="brand">xsukax</span> ReadClean PDF</h1>
+            <div class="subtitle">Extract clean content from any webpage and save as PDF</div>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('url')">🔗 URL Fetch</button>
+                <button class="tab" onclick="switchTab('paste')">📋 Paste HTML</button>
+                <button class="tab" onclick="switchTab('bookmarklet')">📖 Bookmarklet</button>
+            </div>
+
+            <!-- URL Fetch Tab -->
+            <div id="url-tab" class="tab-content active">
+                <div class="section">
+                    <h3>🔗 Fetch Content from URL</h3>
+                    <div class="input-group">
+                        <label for="urlInput">Website URL:</label>
+                        <input type="url" id="urlInput" placeholder="https://example.com/article">
+                    </div>
+
+                    <div class="options">
+                        <div class="option">
+                            <input type="checkbox" id="removeAds1" checked>
+                            <label for="removeAds1">Remove Ads & Scripts</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="removeImages1" checked>
+                            <label for="removeImages1">Remove Images</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="removeLinks1" checked>
+                            <label for="removeLinks1">Remove Links & Buttons</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="expandAll1" checked>
+                            <label for="expandAll1">Expand All Sections</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="autoDetectRTL1" checked>
+                            <label for="autoDetectRTL1">Auto-detect RTL/LTR</label>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="fetchAndClean()">🔥 Fetch Content</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paste HTML Tab -->
+            <div id="paste-tab" class="tab-content">
+                <div class="section">
+                    <h3>📋 Paste HTML Content</h3>
+                    <div class="input-group">
+                        <label for="htmlInput">HTML Content:</label>
+                        <textarea id="htmlInput" placeholder="Paste the page's HTML here...&#10;&#10;To get HTML:&#10;1. Open the webpage&#10;2. Right-click → View Page Source (Ctrl+U)&#10;3. Copy all HTML and paste here"></textarea>
+                    </div>
+
+                    <div class="options">
+                        <div class="option">
+                            <input type="checkbox" id="removeAds2" checked>
+                            <label for="removeAds2">Remove Ads & Scripts</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="removeImages2" checked>
+                            <label for="removeImages2">Remove Images</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="removeLinks2" checked>
+                            <label for="removeLinks2">Remove Links & Buttons</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="expandAll2" checked>
+                            <label for="expandAll2">Expand All Sections</label>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="autoDetectRTL2" checked>
+                            <label for="autoDetectRTL2">Auto-detect RTL/LTR</label>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="processHTML()">🔄 Process HTML</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookmarklet Tab -->
+            <div id="bookmarklet-tab" class="tab-content">
+                <div class="section">
+                    <h3>🔌 Bookmarklet Method (Works on ANY Website)</h3>
+                    <p style="color: #8b949e; margin-bottom: 16px;">
+                        Drag this button to your bookmarks bar and use it on any webpage:
+                    </p>
+                    <a href="javascript:(function(){const d=document.cloneNode(true);const removeAds=true;const removeImages=true;const removeLinks=true;const expandAll=true;if(removeAds){['script','style','link','iframe','noscript','nav','header','footer','.ad','.ads','.advertisement','.banner','[class*=ad-]','[id*=ad-]','.social-share','.comments','[class*=sidebar]','[class*=menu]','[class*=navigation]'].forEach(s=>d.querySelectorAll(s).forEach(e=>e.remove()));}if(removeImages){d.querySelectorAll('img, picture, figure').forEach(e=>e.remove());}if(removeLinks){d.querySelectorAll('a').forEach(a=>{const span=d.createElement('span');span.textContent=a.textContent;a.parentNode.replaceChild(span,a);});d.querySelectorAll('button').forEach(e=>e.remove());}if(expandAll){d.querySelectorAll('details').forEach(e=>e.setAttribute('open','open'));d.querySelectorAll('[style*=none]').forEach(e=>e.style.display='block');}const c=(d.querySelector('article')||d.querySelector('main')||d.querySelector('[role=main]')||d.querySelector('.content')||d.querySelector('.post-content')||d.querySelector('.article-content')||d.querySelector('.entry-content')||d.querySelector('#content')||d.querySelector('.main-content')||d.body);if(c){const w=window.open('','_blank','width=900,height=700');const rtl=/[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(c.textContent);w.document.write('<html><head><meta charset=UTF-8><title>'+document.title+'</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:900px;margin:20px auto;padding:20px;line-height:1.7;'+(rtl?'direction:rtl;text-align:right':'direction:ltr;text-align:left')+'}h1,h2,h3{color:#333;margin:24px 0 12px}p{margin-bottom:16px}ul,ol{margin:16px 0;padding-'+(rtl?'right':'left')+':28px}li{margin-bottom:8px}</style></head><body>'+c.innerHTML+'</body></html>');w.document.close();setTimeout(()=>w.print(),500)}else{alert('Content not found!')}})();" class="bookmarklet-link">
+                        📄 xsukax ReadClean PDF
+                    </a>
+
+                    <div class="instructions">
+                        <strong>How to use:</strong>
+                        <ol>
+                            <li><strong>Drag</strong> the button above to your browser's bookmarks bar</li>
+                            <li><strong>Navigate</strong> to any webpage you want to convert</li>
+                            <li><strong>Click</strong> the bookmarklet from your bookmarks bar</li>
+                            <li>A new window opens with clean content → <strong>Print (Ctrl+P)</strong> and save as PDF</li>
+                        </ol>
+                        <p style="margin-top: 12px;">
+                            <strong>✅ Works on ANY website</strong> - No CORS issues! Runs directly on the page.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="options">
+                    <div class="option">
+                        <input type="checkbox" id="removeAds3" checked>
+                        <label for="removeAds3">Remove Ads & Scripts</label>
+                    </div>
+                    <div class="option">
+                        <input type="checkbox" id="removeImages3" checked>
+                        <label for="removeImages3">Remove Images</label>
+                    </div>
+                    <div class="option">
+                        <input type="checkbox" id="removeLinks3" checked>
+                        <label for="removeLinks3">Remove Links & Buttons</label>
+                    </div>
+                    <div class="option">
+                        <input type="checkbox" id="expandAll3" checked>
+                        <label for="expandAll3">Expand All Sections</label>
+                    </div>
+                    <div class="option">
+                        <input type="checkbox" id="autoDetectRTL3" checked>
+                        <label for="autoDetectRTL3">Auto-detect RTL/LTR</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Info Display -->
+            <div id="page-info" class="page-info">
+                <strong>📄 Page Information:</strong>
+                <div class="title" id="pageTitle">-</div>
+                <div class="url" id="pageUrl">-</div>
+            </div>
+
+            <!-- Save PDF Button -->
+            <div class="button-group" style="margin-top: 24px; justify-content: center;">
+                <button class="btn-danger" id="pdfBtn" onclick="generatePDF()" disabled>
+                    📄 Save as PDF (Print)
+                </button>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="status"></div>
+
+            <!-- Content Display -->
+            <div id="content"></div>
+        </div>
+
+        <div class="footer">
+            <p>Made with ❤️ by <a href="https://github.com/xsukax" target="_blank">xsukax</a></p>
+            <p style="margin-top: 8px; font-size: 12px;">
+                Open source project • Works with any website • Supports RTL & LTR languages
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'url';
+        let pageTitle = 'Document';
+        let originalTitle = document.title;
+
+        // Tab switching function
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // Fetch content from URL
+        async function fetchAndClean() {
+            const url = document.getElementById('urlInput').value;
+            const pdfBtn = document.getElementById('pdfBtn');
+
+            if (!url) {
+                showStatus('⚠️ Please enter a valid URL', 'error');
+                return;
+            }
+
+            showStatus('🔄 Fetching content (trying multiple proxies)...', 'loading');
+            pdfBtn.disabled = true;
+
+            // Working CORS proxies
+            const proxies = [
+                {
+                    url: `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                    name: 'CORSProxy'
+                },
+                {
+                    url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+                    name: 'AllOrigins'
+                },
+                {
+                    url: `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`,
+                    name: 'ThingProxy'
+                }
+            ];
+
+            let lastError = '';
+
+            for (let i = 0; i < proxies.length; i++) {
+                try {
+                    showStatus(`🔄 Trying ${proxies[i].name} (${i + 1}/${proxies.length})...`, 'loading');
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                    const response = await fetch(proxies[i].url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                        },
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const html = await response.text();
+                        
+                        if (html && html.length > 100) {
+                            processHTMLContent(
+                                html,
+                                'removeAds1',
+                                'removeImages1',
+                                'removeLinks1',
+                                'expandAll1',
+                                'autoDetectRTL1',
+                                url
+                            );
+                            return;
+                        }
+                    }
+                    
+                    lastError = `${proxies[i].name}: HTTP ${response.status}`;
+                } catch (error) {
+                    lastError = `${proxies[i].name}: ${error.name === 'AbortError' ? 'Timeout' : error.message}`;
+                }
+            }
+
+            showStatus(
+                `❌ All proxies failed. Last error: ${lastError}. 
+                <br><br><strong>💡 Tip:</strong> Use the <strong>Bookmarklet</strong> method (recommended) 
+                or <strong>Paste HTML</strong> tab instead.`,
+                'error'
+            );
+        }
+
+        // Process pasted HTML
+        function processHTML() {
+            const html = document.getElementById('htmlInput').value;
+
+            if (!html.trim()) {
+                showStatus('⚠️ Please paste HTML content', 'error');
+                return;
+            }
+
+            processHTMLContent(
+                html,
+                'removeAds2',
+                'removeImages2',
+                'removeLinks2',
+                'expandAll2',
+                'autoDetectRTL2',
+                null
+            );
+        }
+
+        // Main HTML processing function
+        function processHTMLContent(html, removeAdsId, removeImagesId, removeLinksId, expandAllId, autoDetectRTLId, sourceUrl) {
+            const contentDiv = document.getElementById('content');
+            const pdfBtn = document.getElementById('pdfBtn');
+            const pageInfoDiv = document.getElementById('page-info');
+
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Extract page title
+                const titleElement = doc.querySelector('title');
+                pageTitle = titleElement ? titleElement.textContent.trim() : 'Document';
+                
+                if (!pageTitle || pageTitle === '') {
+                    pageTitle = 'Document';
+                }
+
+                // Sanitize title for filename
+                pageTitle = pageTitle
+                    .replace(/[<>:"/\\|?*]/g, '-')
+                    .substring(0, 100);
+
+                // Update page info display
+                document.getElementById('pageTitle').textContent = pageTitle;
+                document.getElementById('pageUrl').textContent = sourceUrl || 'Pasted HTML';
+                pageInfoDiv.style.display = 'block';
+
+                // Clean content based on options
+                if (document.getElementById(removeAdsId).checked) {
+                    cleanContent(doc);
+                }
+
+                if (document.getElementById(removeImagesId).checked) {
+                    removeImages(doc);
+                }
+
+                if (document.getElementById(removeLinksId).checked) {
+                    removeLinks(doc);
+                }
+
+                // Extract main content
+                const mainContent = extractMainContent(doc);
+
+                if (mainContent) {
+                    contentDiv.innerHTML = mainContent;
+                    contentDiv.style.display = 'block';
+
+                    // Auto-detect text direction
+                    if (document.getElementById(autoDetectRTLId).checked) {
+                        detectDirection(contentDiv);
+                    }
+
+                    // Expand collapsible sections
+                    if (document.getElementById(expandAllId).checked) {
+                        expandAllSections(contentDiv);
+                    }
+
+                    pdfBtn.disabled = false;
+                    showStatus(
+                        `✅ Content processed successfully! Click "Save as PDF" to print with filename: 
+                        <strong>${pageTitle}.pdf</strong>
+                        <br><small style="opacity:0.8;">Note: Any CSS errors in console are normal and harmless.</small>`,
+                        'success'
+                    );
+                    
+                    window.scrollTo({
+                        top: document.getElementById('content').offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    throw new Error('No content found');
+                }
+
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Process error:', error);
+            }
+        }
+
+        // Clean unwanted content
+        function cleanContent(doc) {
+            const selectorsToRemove = [
+                'script', 'style', 'link', 'iframe', 'noscript', 'svg', 'base',
+                '.ad', '.ads', '.advertisement', '.banner', '.promo',
+                '[class*="ad-"]', '[id*="ad-"]', '[class*="banner"]',
+                'nav', 'header', 'footer', 'aside',
+                '.social-share', '.comments', '.comment', '.share',
+                '[class*="sidebar"]', '[class*="menu"]', '[class*="navigation"]',
+                '[class*="cookie"]', '[class*="popup"]', '[class*="modal"]',
+                'form', 'input[type="submit"]'
+            ];
+
+            selectorsToRemove.forEach(selector => {
+                doc.querySelectorAll(selector).forEach(el => el.remove());
+            });
+
+            // Remove background images from inline styles
+            doc.querySelectorAll('[style]').forEach(el => {
+                const style = el.getAttribute('style');
+                if (style && (style.includes('background-image') || style.includes('background:'))) {
+                    el.style.backgroundImage = 'none';
+                    el.style.background = 'none';
+                }
+            });
+        }
+
+        // Remove all images
+        function removeImages(doc) {
+            doc.querySelectorAll('img, picture, figure').forEach(el => el.remove());
+            
+            doc.querySelectorAll('[style*="background-image"]').forEach(el => {
+                el.style.backgroundImage = 'none';
+            });
+        }
+
+        // Remove all links and buttons
+        function removeLinks(doc) {
+            // Replace hyperlinks with their text content
+            doc.querySelectorAll('a').forEach(link => {
+                const span = doc.createElement('span');
+                span.textContent = link.textContent;
+                
+                // Copy any classes for styling
+                if (link.className) {
+                    span.className = link.className;
+                }
+                
+                link.parentNode.replaceChild(span, link);
+            });
+
+            // Remove all buttons
+            doc.querySelectorAll('button, input[type="button"], [role="button"]').forEach(btn => {
+                btn.remove();
+            });
+        }
+
+        // Extract main content from page
+        function extractMainContent(doc) {
+            const contentSelectors = [
+                'article',
+                'main',
+                '[role="main"]',
+                '.content',
+                '.post-content',
+                '.article-content',
+                '.entry-content',
+                '#content',
+                '.main-content',
+                '.page-content',
+                '.text-content',
+                '.article-body',
+                '[class*="article"]',
+                '[class*="post-body"]'
+            ];
+
+            for (const selector of contentSelectors) {
+                const element = doc.querySelector(selector);
+                if (element && element.textContent.trim().length > 200) {
+                    return element.innerHTML;
+                }
+            }
+
+            // Fallback to body
+            const body = doc.body;
+            if (body) {
+                return body.innerHTML;
+            }
+
+            return null;
+        }
+
+        // Detect RTL or LTR text direction
+        function detectDirection(element) {
+            const text = element.textContent;
+            const rtlChars = /[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]/;
+
+            if (rtlChars.test(text)) {
+                element.classList.add('rtl');
+                element.classList.remove('ltr');
+            } else {
+                element.classList.add('ltr');
+                element.classList.remove('rtl');
+            }
+        }
+
+        // Expand all collapsible sections
+        function expandAllSections(element) {
+            // Expand <details> elements
+            element.querySelectorAll('details').forEach(detail => {
+                detail.setAttribute('open', 'open');
+            });
+
+            // Show hidden elements
+            element.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach(el => {
+                el.style.display = 'block';
+            });
+
+            // Remove hidden attributes
+            element.querySelectorAll('[hidden]').forEach(el => {
+                el.removeAttribute('hidden');
+            });
+
+            // Try to click expand buttons
+            const expandButtons = element.querySelectorAll(
+                '[class*="expand"], [class*="toggle"], [class*="accordion"], [class*="collapse"]'
+            );
+            
+            expandButtons.forEach(btn => {
+                if (btn.getAttribute('aria-expanded') === 'false') {
+                    try {
+                        btn.click();
+                    } catch(e) {
+                        // Ignore click errors
+                    }
+                }
+            });
+        }
+
+        // Generate PDF (open print dialog)
+        function generatePDF() {
+            const contentDiv = document.getElementById('content');
+            
+            if (!contentDiv || contentDiv.style.display === 'none' || !contentDiv.innerHTML.trim()) {
+                showStatus('❌ No content to print. Please fetch content first.', 'error');
+                return;
+            }
+
+            // Set document title for PDF filename
+            document.title = pageTitle;
+
+            // Prepare content for printing
+            contentDiv.style.display = 'block';
+            contentDiv.style.maxHeight = 'none';
+            contentDiv.style.overflow = 'visible';
+
+            setTimeout(() => {
+                window.print();
+                
+                // Restore after printing
+                setTimeout(() => {
+                    document.title = originalTitle;
+                    contentDiv.style.maxHeight = '600px';
+                    contentDiv.style.overflow = 'auto';
+                }, 500);
+            }, 100);
+        }
+
+        // Show status messages
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = 'status ' + type;
+        }
+
+        // Enter key handler for URL input
+        document.getElementById('urlInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchAndClean();
+            }
+        });
+
+        // Console branding
+        console.log(
+            '%c xsukax ReadClean PDF ',
+            'background: #238636; color: white; font-size: 16px; padding: 10px;'
+        );
+        console.log('Made with ❤️ by xsukax');
+        console.log(
+            '%c ℹ️ CSS/File Errors Are Normal ',
+            'background: #1f6feb; color: white; padding: 5px;'
+        );
+        console.log(
+            'The app removes CSS/scripts from fetched pages. ' +
+            'Any ERR_FILE_NOT_FOUND errors for CSS files are expected and harmless.'
+        );
+    </script>
+</body>
+</html>
